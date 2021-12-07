@@ -119,7 +119,7 @@ fn main() -> Result<(), String> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() != 2 {
-        return Err("Usage: ./day3 <input data path>".to_string());
+        return Err(format!("Usage: {} <input data path>", args[0]));
     }
 
     let path = &args[1];
