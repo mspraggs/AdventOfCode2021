@@ -1,6 +1,9 @@
 use std::collections::HashSet;
 use std::env;
+use std::error;
 use std::fs;
+
+use aoc2021::error::Error;
 
 type Point = (usize, usize);
 
@@ -44,7 +47,7 @@ impl Fold {
     }
 }
 
-fn parse_input(data: &str) -> Result<(Vec<Point>, Vec<Fold>), String> {
+fn parse_input(data: &str) -> Result<(Vec<Point>, Vec<Fold>), Box<dyn error::Error>> {
     let mut line_iter = data.lines();
 
     let mut points = Vec::new();
@@ -57,11 +60,11 @@ fn parse_input(data: &str) -> Result<(Vec<Point>, Vec<Fold>), String> {
         let x = split
             .next()
             .and_then(|s| s.parse::<usize>().ok())
-            .ok_or("Unable to parse input.")?;
+            .ok_or(Error("Unable to parse input.".to_string()))?;
         let y = split
             .next()
             .and_then(|s| s.parse::<usize>().ok())
-            .ok_or("Unable to parse input.")?;
+            .ok_or(Error("Unable to parse input.".to_string()))?;
 
         points.push((x, y));
     }
@@ -70,16 +73,16 @@ fn parse_input(data: &str) -> Result<(Vec<Point>, Vec<Fold>), String> {
     while let Some(line) = line_iter.next() {
         let line = line
             .strip_prefix("fold along ")
-            .ok_or("Unable to parse input.")?;
+            .ok_or(Error("Unable to parse input.".to_string()))?;
         let mut split = line.split('=');
         let axis = split
             .next()
             .map(|s| if s == "x" { Axis::X } else { Axis::Y })
-            .ok_or("Unable to parse input.")?;
+            .ok_or(Error("Unable to parse input.".to_string()))?;
         let position = split
             .next()
             .and_then(|s| s.parse::<usize>().ok())
-            .ok_or("Unable to parse input.")?;
+            .ok_or(Error("Unable to parse input.".to_string()))?;
 
         folds.push(Fold::new(position, axis));
     }
@@ -108,7 +111,7 @@ fn count_unique_points(points: &[Point]) -> usize {
     set.len()
 }
 
-fn print_points(points: &[Point]) -> Result<(), String> {
+fn print_points(points: &[Point]) -> Result<(), Box<dyn error::Error>> {
     let mut unique_points = HashSet::new();
     for point in points {
         unique_points.insert(point);
@@ -118,12 +121,12 @@ fn print_points(points: &[Point]) -> Result<(), String> {
         .iter()
         .max_by(|&p1, &p2| p1.0.cmp(&p2.0))
         .map(|p| p.0 + 1)
-        .ok_or("Unable to find_maximum")?;
+        .ok_or(Error("Unable to find_maximum".to_string()))?;
     let max_y = points
         .iter()
         .max_by(|&p1, &p2| p1.1.cmp(&p2.1))
         .map(|p| p.1 + 1)
-        .ok_or("Unable to find_maximum")?;
+        .ok_or(Error("Unable to find_maximum".to_string()))?;
 
     for y in 0..max_y {
         for x in 0..max_x {
@@ -139,11 +142,11 @@ fn print_points(points: &[Point]) -> Result<(), String> {
     Ok(())
 }
 
-fn main() -> Result<(), String> {
+fn main() -> Result<(), Box<dyn error::Error>> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() != 2 {
-        return Err(format!("Usage: {} <input data path>", args[0]));
+        return Err(Box::new(Error(format!("Usage: {} <input data path>", args[0]))));
     }
 
     let path = &args[1];
